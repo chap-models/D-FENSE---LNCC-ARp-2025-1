@@ -16,8 +16,6 @@ The model forecasts weekly dengue case counts using an autoregressive process of
 2. Drive the filter forward with random noise (Monte Carlo simulation) to generate multiple possible future trajectories
 3. Transform back from log2 space to case counts
 
-Each Monte Carlo trajectory represents one plausible future. CHAP uses these samples to compute summary statistics like medians and credible intervals.
-
 ## CHAP Compatibility
 
 The original model was written in MATLAB as a single batch script processing per-state CSV files. To make it CHAP-compatible:
