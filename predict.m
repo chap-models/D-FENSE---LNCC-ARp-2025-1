@@ -1,5 +1,5 @@
-function predict_chap(model_path, historic_data_path, future_data_path, out_path)
-% PREDICT_CHAP  CHAP prediction entry point for the LNCC AR(p) model.
+function predict(model_path, historic_data_path, future_data_path, out_path)
+% PREDICT  CHAP prediction entry point for the LNCC AR(p) model.
 %
 % Loads the trained AR(p) model, recomputes initial conditions from
 % historic data, runs Monte Carlo simulation over the forecast horizon

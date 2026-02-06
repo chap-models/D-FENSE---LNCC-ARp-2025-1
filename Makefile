@@ -13,7 +13,7 @@ train: ## Train only
 
 predict: ## Predict only (requires trained model)
 	mkdir -p output
-	$(DOCKER_RUN) octave --no-gui --eval "predict_chap('output/model.mat', 'input/trainData.csv', 'input/futureClimateData.csv', 'output/predictions.csv')"
+	$(DOCKER_RUN) octave --no-gui --eval "predict('output/model.mat', 'input/trainData.csv', 'input/futureClimateData.csv', 'output/predictions.csv')"
 
 clean: ## Remove output files
 	rm -rf output/*

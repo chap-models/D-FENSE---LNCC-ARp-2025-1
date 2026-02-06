@@ -2,7 +2,7 @@
 % Runs train followed by predict_chap using sample input data.
 
 train('input/trainData.csv', 'output/model.mat');
-predict_chap('output/model.mat', 'input/trainData.csv', 'input/futureClimateData.csv', 'output/predictions.csv');
+predict('output/model.mat', 'input/trainData.csv', 'input/futureClimateData.csv', 'output/predictions.csv');
 
 fprintf('\n--- Output preview ---\n');
 fid = fopen('output/predictions.csv', 'r');
