@@ -1,53 +1,46 @@
-# LNCC-ARp-2025-1 (CHAP-Compatible)
+# LNCC-ARp-2025-1
 
-CHAP-compatible version of the LNCC AR(p) dengue forecast model, originally developed for the 2nd Infodengue-Mosqlimate Dengue Challenge (IMDC) 2025.
+CHAP-compatible version of the LNCC AR(p) dengue forecast model, originally developed by **Americo Cunha Jr** (LNCC / UERJ) as part of the D-FENSE team for the [2nd Infodengue-Mosqlimate Dengue Challenge (IMDC) 2025](https://github.com/Mosqlimate-project/2nd_IMDC_sprint_results).
 
-## Original Model
+## Model Methodology
 
-- **Original source**: [Mosqlimate 2nd IMDC Sprint Results](https://github.com/Mosqlimate-project/2nd_IMDC_sprint_results)
-- **Team**: D-FENSE
-- **Author**: Americo Cunha Jr (LNCC / UERJ)
-- **Language**: MATLAB
-- **Method**: High-order AR(p) autoregressive model fitted to log2-transformed weekly dengue case counts using the modified covariance method, with Monte Carlo simulation for probabilistic forecasting. Uses no climate covariates -- predictions are based purely on disease case history.
+The model forecasts weekly dengue case counts using an autoregressive process of order *p* (default p=92, roughly two years of weekly data). It uses no climate covariates — predictions are based purely on disease case history.
 
-## CHAP Adaptation
+**Training:**
+1. Log2-transform the case counts (zeros replaced with 0.1)
+2. Fit an AR(p) model to the zero-mean log2 signal using the modified covariance method
+3. Estimate the prediction error standard deviation
 
-Runs on **GNU Octave 9.2.0** inside Docker (no MATLAB license required).
+**Prediction:**
+1. Initialize the AR filter from the most recent historic data
+2. Drive the filter forward with random noise (Monte Carlo simulation) to generate multiple possible future trajectories
+3. Transform back from log2 space to case counts
 
-### Changes from Original
+Each Monte Carlo trajectory represents one plausible future. CHAP uses these samples to compute summary statistics like medians and credible intervals.
 
-| # | Change | Why | Impact |
-|---|--------|-----|--------|
-| 1 | Split into `train.m` + `predict_chap.m` | CHAP requires separate train/predict entry points | None -- same logic |
-| 2 | `armcov` replaced by `armcov_octave.m` | Octave has no `armcov`; implements same modified covariance algorithm | None -- identical math |
-| 3 | `filter2(a,sig,'same')` replaced by `conv(sig(:)',a(:)','same')(:)` | Octave's `filter2` is 2D-only | None -- equivalent centered filtering |
-| 4 | `readtable`/`writetable` replaced by custom CSV I/O | Octave compatibility | None |
-| 5 | Single multi-location CSV instead of per-state files | CHAP data format | None -- data is identical |
-| 6 | SSA smoothing removed | CHAP computes its own statistics from raw samples | Outputs are unsmoothed MC trajectories |
-| 7 | Output: percentile bounds replaced by `sample_0`..`sample_N` columns | CHAP output contract | Different format, same underlying model |
-| 8 | MC count: 10000 default reduced to 100 (configurable) | File size; CHAP convention | Configurable via `user_options` |
-| 9 | Hardcoded EW indices removed | Dynamic forecast horizon from future_data CSV | More flexible |
-| 10 | Plotting removed | CHAP handles visualization | None |
-| 11 | Initial conditions recomputed at predict time from historic_data | More flexible; uses latest available data | Better than freezing at training time |
-| 12 | Missing values handled by forward fill, backward fill, then zero | Original assumed complete data | Handles CHAP datasets with gaps |
+## CHAP Compatibility
 
-### User Options
+The original model was written in MATLAB as a single batch script processing per-state CSV files. To make it CHAP-compatible:
 
-| Option | Type | Default | Description |
-|--------|------|---------|-------------|
-| `p` | integer | 92 | AR model order (should be > 52 for weekly seasonality) |
-| `n_samples` | integer | 100 | Number of Monte Carlo samples |
+- **Split into train/predict entry points** as required by the CHAP model contract
+- **Ported from MATLAB to GNU Octave** (runs in Docker via `gnuoctave/octave:9.2.0`, no license needed)
+- **Adapted I/O** to read/write CHAP's standard CSV format (multi-location, `sample_0`..`sample_N` output columns)
+- **SSA smoothing removed** since CHAP computes its own statistics from the raw sample trajectories
+- **Hyperparameters exposed** as `user_options` (AR order `p` and number of MC samples `n_samples`)
 
-## File Structure
+The core AR model logic (coefficient estimation, Monte Carlo simulation, log2 transform) is preserved from the original.
 
-| File | Purpose |
-|------|---------|
-| `MLproject` | CHAP interface definition |
-| `train.m` | Training entry point |
-| `predict.m` | Prediction entry point (`predict_chap` function) |
-| `armcov_octave.m` | Modified covariance AR estimation |
-| `read_chap_csv.m` | Read CHAP-format CSV |
-| `write_chap_csv.m` | Write predictions CSV |
-| `read_model_config.m` | Parse CHAP YAML config |
-| `fillmissing_octave.m` | Forward/backward fill for missing values |
-| `isolated_run.m` | Local testing helper |
+## Repository Structure
+
+```
+MLproject              CHAP interface (entry points, user options, Docker image)
+train.m                Training: fits AR(p) model per location
+predict.m              Prediction: Monte Carlo forecast per location
+armcov_octave.m        Modified covariance AR estimation (replaces MATLAB's armcov)
+fillmissing_octave.m   Forward/backward fill for missing values
+read_chap_csv.m        Read CHAP-format CSV
+write_chap_csv.m       Write CHAP-format prediction CSV
+read_model_config.m    Parse user options from CHAP config
+isolated_run.m         Local testing helper
+input/                 Sample data for testing
+```
