@@ -7,3 +7,8 @@ updates:
       interval: "weekly"
     commit-message:
       prefix: "chore"
+    # A major Octave release changes the model runtime, and this repo has no
+    # CI to test it, so only digest and minor/patch updates are proposed.
+    ignore:
+      - dependency-name: "gnuoctave/octave"
+        update-types: ["version-update:semver-major"]
