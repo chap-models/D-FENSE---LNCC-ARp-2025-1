@@ -1,4 +1,4 @@
-FROM gnuoctave/octave:9.2.0@sha256:100d394c57b86469748d26ddafcf73a1074338a66dabcababe2e4e05146772b9
+FROM gnuoctave/octave:9.4.0@sha256:f8be6269b4783a9828cf2141a4388fd194f8f0be8a8e193c3ec388a6318be973
 
 # No additional Octave packages needed — all dependencies (buffer, armcov)
 # are implemented locally to avoid the heavy control/signal/statistics chain.
